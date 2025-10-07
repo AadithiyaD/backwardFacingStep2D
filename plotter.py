@@ -49,7 +49,7 @@ plt.xlabel("U/U₀")
 plt.ylabel("y/h")
 plt.title("U/Ur Profiles at Different x/H Locations")
 plt.grid(True)
-plt.legend(loc="upper left", bbox_to_anchor=(1, 1))
+plt.legend(loc="upper left")
 
 # Save the plot to match gnuplot output
 plt.savefig("backwardStep2D_U_plottter.png", dpi=300, bbox_inches="tight")
