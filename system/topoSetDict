@@ -1,0 +1,131 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2506                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      topoSetDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+actions
+(
+    // Create cellSet for auto0's cells. We specify the cell ID here, so that we can use this later
+    // for our subpatch and patch subtraction
+    {
+        name    auto0_cells_0_1;
+        type    cellSet;
+        action  new;
+        source  labelToCell;
+        sourceInfo
+        {
+            value   (0 1);
+        }
+    }
+    // Get all faces of these cells
+    {
+        name    auto0_subpatch1_faces;
+        type    faceSet;
+        action  new;
+        source  cellToFace;
+        sourceInfo
+        {
+            set     auto0_cells_0_1;
+            option  all;
+        }
+    }
+    // Create a subpatch of the faces of our specfied cells which lie on auto0
+    // This performs set intersection between auto0_subpatch1_faces and auto0
+    {
+        name    auto0_subpatch1_faces;
+        type    faceSet;
+        action  subset;
+        source  patchToFace;
+        sourceInfo
+        {
+            name    auto0;
+        }
+    }
+    // Now, we will define subpatch2 as auto0 minus subpatch1
+    {
+        name    auto0_subpatch2_faces;
+        type    faceSet;
+        action  new;
+        source  patchToFace;
+        sourceInfo
+        {
+            name    auto0;
+        }
+    }
+    {
+        name    auto0_subpatch2_faces;
+        type    faceSet;
+        action  delete;
+        source  faceToFace;
+        sourceInfo
+        {
+            set     auto0_subpatch1_faces;
+        }
+    }
+    // Repeat the same procedure for auto4
+    {
+        name    auto4_cells_0_1;
+        type    cellSet;
+        action  new;
+        source  labelToCell;
+        sourceInfo
+        {
+            value   (0 1);
+        }
+    }
+    {
+        name    auto4_subpatch1_faces;
+        type    faceSet;
+        action  new;
+        source  cellToFace;
+        sourceInfo
+        {
+            set     auto4_cells_0_1;
+            option  all;
+        }
+    }
+    {
+        name    auto4_subpatch1_faces;
+        type    faceSet;
+        action  subset;
+        source  patchToFace;
+        sourceInfo
+        {
+            name    auto4;
+        }
+    }
+    {
+        name    auto4_subpatch2_faces;
+        type    faceSet;
+        action  new;
+        source  patchToFace;
+        sourceInfo
+        {
+            name    auto4;
+        }
+    }
+    {
+        name    auto4_subpatch2_faces;
+        type    faceSet;
+        action  delete;
+        source  faceToFace;
+        sourceInfo
+        {
+            set     auto4_subpatch1_faces;
+        }
+    }
+);
+
+
+// ************************************************************************* //

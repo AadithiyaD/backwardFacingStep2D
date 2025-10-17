@@ -1,0 +1,61 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2506                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      createPatchDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+pointSync false;
+
+patches
+(
+    // Format - specify name of patch, what type of B.C it is, how to construct the patch (here we construct from the sets
+    // we defined in topoSet), and the set of faces to use
+    {
+        name auto0_subpatch1;
+        patchInfo
+        {
+            type symmetryPlane;
+        }
+        constructFrom set;
+        set auto0_subpatch1_faces;
+    }
+    {
+        name auto0_subpatch2;
+        patchInfo
+        {
+            type wall;
+        }
+        constructFrom set;
+        set auto0_subpatch2_faces;
+    }
+    {
+        name auto4_subpatch1;
+        patchInfo
+        {
+            type symmetryPlane;
+        }
+        constructFrom set;
+        set auto4_subpatch1_faces;
+    }
+    {
+        name auto4_subpatch2;
+        patchInfo
+        {
+            type wall;
+        }
+        constructFrom set;
+        set auto4_subpatch2_faces;
+    }
+);
+
+// ************************************************************************* //

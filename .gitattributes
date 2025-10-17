@@ -1,0 +1,2 @@
+*.p3dfmt filter=lfs diff=lfs merge=lfs -text
+*.p2dfmt filter=lfs diff=lfs merge=lfs -text
