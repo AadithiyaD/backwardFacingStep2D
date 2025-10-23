@@ -16,9 +16,9 @@ plt.rcParams.update({
 })
 
 # Constants
-STEP_HEIGHT = 0.0127  # m
-U_REF = 46.6  # m/s
+STEP_HEIGHT = 1 # m
 X_H_LOCATIONS = [1.0, 4.0, 6.0, 10.0]
+GRID_LEVEL = 4 # Change to desired grid level plot
 
 # Assign colors for each x/H location
 colors = cm.tab10.colors
@@ -45,14 +45,21 @@ for i in range(1, 23):
         validation_data[x_h] = df
 
 # Load OpenFOAM data
+file_path = f"ValidationData/post_data/grids/grid_{GRID_LEVEL}"
+
+# Load U_ref
+df_ref = pd.read_csv(f"{file_path}/Uref_U.mag_U.csv")
+U_REF = df_ref['U.mag'].values[0]
+
 for x_h in X_H_LOCATIONS:
-    file_path = f"paraViewData/dataFromPV/x_h_{int(x_h)}.csv"
-    df = pd.read_csv(file_path)
-    
-    df['y_normalized'] = df['arc_length'] / STEP_HEIGHT
-    df['u_normalized'] = df['U:0'] / U_REF
-    
+    # Now load sampled x/H data
+    df = pd.read_csv(f"{file_path}/x_by_h_{int(x_h):02d}_U.mag_U.csv")
+    df['y_normalized'] = df['y'].values / STEP_HEIGHT # Normalize y by step height
+    df['u_normalized'] = df['U.mag'].values / U_REF  # U_REF
+
     openfoam_data[x_h] = df
+    
+    
 
 # Plot each x/H in its own subplot
 for idx, x_h in enumerate(X_H_LOCATIONS):
@@ -86,9 +93,9 @@ for idx, x_h in enumerate(X_H_LOCATIONS):
     ax.legend(loc="upper left")
 
 # Add overall title
-fig.suptitle("U/Ur Profiles at Different x/H Locations", fontsize=14, y=0.995)
+fig.suptitle(f"U/Ur Profiles at Different x/H Locations, Grid level {GRID_LEVEL} ", fontsize=14, y=0.995)
 plt.tight_layout()
 
 # Save and show
-plt.savefig("backwardStep2D_U_plotter_subplots.png", dpi=300, bbox_inches="tight")
+plt.savefig(f"U_subplots_GridLevel_{GRID_LEVEL}.png", dpi=300, bbox_inches="tight")
 plt.show()

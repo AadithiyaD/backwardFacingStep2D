@@ -1,0 +1,21 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2506                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+magU
+{
+    type            mag;
+    libs            (fieldFunctionObjects);
+    field           U;
+    result          U.mag;  // Creates a new field called U.mag
+    executeControl  writeTime;
+    writeControl    writeTime;
+}
+
+
+
+// ************************************************************************* //

@@ -1,3 +1,12 @@
+----
+ToDo
+- Link Turbo RANS to this and try optimizing
+    - Try to optimize the medium refinement to match expt data and see how close
+        you can get to the fine mesh results
+- Further mesh refinement to see if any improvement produced
+- Different turbulence models
+----
+
 In x_by_h_01_p_U_turbulenceProperties:devReff.xy
     - *columns 3,4,5* are *U_x,U_y,U_z* respectively
     - I believe *column 1* is the *y* coordinate
@@ -30,9 +39,8 @@ createPatch -dict system/patchMerge -overwrite
 
 I've modified the Allrun script to do the above
 
-ToDo
-- Link Turbo RANS to this and try optimizing
-    - Try to optimize the medium refinement to match expt data and see how close
-        you can get to the fine mesh results
-- Further mesh refinement to see if any improvement produced
-- Different turbulence models
+postProcess -funcs '(magU sample)' -latestTime
+- runs the sample dict in system for the latest time
+
+The sample dict from the ori case file takes U_ref at -0.0508 0.0508 0.01, which is basically the midpoint of the
+entry region. I can use somethime similar for the nasa grids

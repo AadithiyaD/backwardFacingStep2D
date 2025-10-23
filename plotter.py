@@ -15,9 +15,14 @@ plt.rcParams.update({
 })
 
 # Constants
-STEP_HEIGHT = 0.0127  # m
-U_REF = 46.6  # m/s
+STEP_HEIGHT = 1 # m
+
+# Change these 2 values to compare different x/H locations and grid levels
+# Ideally plot all x_H for a certain grid level to see the changes
+# Available x/H [1.0, 4.0, 6.0, 10.0]. Note - float type
+# Available GRID_LEVEL [0, 1, 2, 3, 4]
 X_H_LOCATIONS = [1.0, 4.0, 6.0, 10.0]
+GRID_LEVEL = [4]
 
 # Assign colors for each x/H location
 from matplotlib import cm
@@ -43,16 +48,22 @@ for i in range(1, 23):
                 color=x_h_color_map[x_h])
 
 # Plot OpenFOAM data
-for x_h in X_H_LOCATIONS:
-    file_path = f"paraViewData/dataFromPV/x_h_{int(x_h)}.csv"
-    df = pd.read_csv(file_path)
+for GRID_LEVEL in GRID_LEVEL:
+    file_path = f"ValidationData/post_data/grids/grid_{GRID_LEVEL}"
+
+    # Load U_ref
+    df_ref = pd.read_csv(f"{file_path}/Uref_U.mag_U.csv")
+    U_REF = df_ref['U.mag'].values[0]
     
-    y_normalized = df['arc_length'] / STEP_HEIGHT
-    u_normalized = df['U:0'] / U_REF
-    
-    ax.plot(u_normalized.values, y_normalized.values, '--', 
-            label=f"OpenFOAM x/H = {x_h}",
-            color=x_h_color_map[x_h])
+    for x_h in X_H_LOCATIONS:
+        # Now load sampled x/H data
+        df = pd.read_csv(f"{file_path}/x_by_h_{int(x_h):02d}_U.mag_U.csv")
+        y_normalized = df['y'].values / STEP_HEIGHT # Normalize y by step height
+        u_normalized = df['U.mag'].values / U_REF  # U_REF
+        
+        ax.plot(u_normalized, y_normalized, '-o', 
+                label=f"OpenFOAM x/H = {x_h}",
+                color=x_h_color_map[x_h])
 
 # Format plot
 ax.set_xlim(-0.4, 1.2)
@@ -64,5 +75,5 @@ ax.grid(True)
 ax.legend(loc="upper left")
 
 # Save and show
-plt.savefig("backwardStep2D_U_plotter.png", dpi=300, bbox_inches="tight")
+#plt.savefig("backwardStep2D_U_plotter.png", dpi=300, bbox_inches="tight")
 plt.show()

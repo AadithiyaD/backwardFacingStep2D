@@ -17,4 +17,6 @@ createPatch -dict system/patchMerge -overwrite
 
 runApplication simpleFoam
 
+postProcess -funcs '(magU sample)' -latestTime
+
 #------------------------------------------------------------------------------
