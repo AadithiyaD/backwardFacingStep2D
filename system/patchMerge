@@ -9,43 +9,25 @@ FoamFile
 {
     version     2.0;
     format      ascii;
-    class       volScalarField;
-    object      p;
+    class       dictionary;
+    object      createPatchDict;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-dimensions      [0 2 -2 0 0 0 0];
+pointSync false;
 
-internalField   uniform 0;
-
-boundaryField
-{
-    inlet
+patches
+(
+    // In the previous patch dict, we initlaize auto0_subpatch2. Here, we merge it with lowerWall
     {
-        type            zeroGradient;
+        name lowerWall;
+        patchInfo
+        {
+            type wall;
+        }
+        constructFrom patches;
+        patches (auto0_subpatch2 lowerWall);  // merges patches into lowerWall
     }
-
-    outlet
-    {
-        type            fixedValue;
-        value           uniform 0;
-    }
-
-    "(lowerWallStartup|upperWallStartup)"
-    {
-        type            symmetryPlane;
-    }
-
-    "(upperWall|lowerWall)"
-    {
-        type            zeroGradient;
-    }
-
-    "(front|back)"
-    {
-        type            empty;
-    }
-}
-
+);
 
 // ************************************************************************* //

@@ -37,7 +37,7 @@ boundaryField
         type            symmetryPlane;
     }
 
-    "(upperWall|lowerWall|lowerWallStep|step)"
+    "(upperWall|lowerWall)"
     {
         type            nutUBlendedWallFunction;
         value           uniform 0;

@@ -21,7 +21,7 @@ patches
     // Format - specify name of patch, what type of B.C it is, how to construct the patch (here we construct from the sets
     // we defined in topoSet), and the set of faces to use
     {
-        name auto0_subpatch1;
+        name lowerWallStartup;
         patchInfo
         {
             type symmetryPlane;
@@ -39,7 +39,7 @@ patches
         set auto0_subpatch2_faces;
     }
     {
-        name auto4_subpatch1;
+        name upperWallStartup;
         patchInfo
         {
             type symmetryPlane;
@@ -48,13 +48,58 @@ patches
         set auto4_subpatch1_faces;
     }
     {
-        name auto4_subpatch2;
+        name upperWall;
         patchInfo
         {
             type wall;
         }
         constructFrom set;
         set auto4_subpatch2_faces;
+    }
+    {
+        name lowerWall;
+        patchInfo
+        {
+            type wall;
+        }
+        constructFrom patches;
+        patches (auto5 auto6);  // merges patches into lowerWall. Merge auto0_subpatch2 here later in patchMerge
+    }
+    {
+        name back;
+        patchInfo
+        {
+            type empty;
+        }
+        constructFrom patches;
+        patches (auto1);  
+    }
+    {
+        name front;
+        patchInfo
+        {
+            type empty;
+        }
+        constructFrom patches;
+        patches (auto2);  
+    }
+    {
+        name inlet;
+        patchInfo
+        {
+            type inlet;
+        }
+        constructFrom patches;
+        patches (auto3);  
+    }
+    {
+        name outlet;
+        patchInfo
+        {
+            type inlet;
+        }
+        constructFrom patches;
+        patches (auto7);  
     }
 );
 

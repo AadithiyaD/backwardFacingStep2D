@@ -5,7 +5,15 @@ cd "${0%/*}" || exit                                # Run from this directory
 
 restore0Dir
 
-runApplication blockMesh
+plot3dToFoam -2D 1 -noBlank backstep5_4levdn.p2dfmt
+
+autoPatch -overwrite 90
+
+topoSet
+
+createPatch -overwrite
+
+createPatch -dict system/patchMerge -overwrite
 
 runApplication simpleFoam
 

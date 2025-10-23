@@ -7,9 +7,9 @@ writeControl    onEnd;
 
 interpolationScheme cellPoint;
 
-setFormat       raw;
+setFormat       csv;
 
-fields          (p U turbulenceProperties:devReff);
+fields          (U);
 
 sets
 {

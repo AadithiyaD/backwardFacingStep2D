@@ -36,7 +36,7 @@ boundaryField
         type            symmetryPlane;
     }
 
-    "(upperWall|lowerWall|lowerWallStep|step)"
+    "(upperWall|lowerWall)"
     {
         type            epsilonWallFunction;
         value           $internalField;

@@ -25,7 +25,9 @@ actions
         source  labelToCell;
         sourceInfo
         {
-            value   (0 1);
+            value   (0 1); // This is the list of cell IDs you get from ParaView. To get this, 
+                            // Select the internalMesh patch, hover cells, and then hover
+                            // over the cells you want to include in your subpatch. Note down their IDs.
         }
     }
     // Get all faces of these cells
@@ -81,7 +83,7 @@ actions
         source  labelToCell;
         sourceInfo
         {
-            value   (0 1);
+            value   (992 993);
         }
     }
     {
