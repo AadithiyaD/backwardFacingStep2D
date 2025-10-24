@@ -4,8 +4,6 @@ from matplotlib import cm
 
 # Set matplotlib style
 plt.rcParams.update({
-    'font.family': 'serif',
-    'font.sans-serif': 'Faculty Glyphic',
     'font.size': 10,
     'grid.color': 'gray',
     'grid.linestyle': '--',
@@ -15,14 +13,15 @@ plt.rcParams.update({
     'legend.frameon': False
 })
 
-# Constants
+# Compare specified grid levels for all x/H locations
+# Available x/H [1.0, 4.0, 6.0, 10.0]. Note - float type
+# Available GRID_LEVEL [0, 1, 2, 3, 4]
 STEP_HEIGHT = 1 # m
 X_H_LOCATIONS = [1.0, 4.0, 6.0, 10.0]
-GRID_LEVEL = 4 # Change to desired grid level plot
+GRID_LEVEL = 4
 
 # Assign colors for each x/H location
-colors = cm.tab10.colors
-x_h_color_map = {x_h: colors[i] for i, x_h in enumerate(X_H_LOCATIONS)}
+grid_colors = ['darkviolet', 'blue', 'darkgreen', 'orange', 'red' ]
 
 # Create 2x2 subplot grid
 fig, axes = plt.subplots(2, 2, figsize=(15, 10))
@@ -59,8 +58,6 @@ for x_h in X_H_LOCATIONS:
 
     openfoam_data[x_h] = df
     
-    
-
 # Plot each x/H in its own subplot
 for idx, x_h in enumerate(X_H_LOCATIONS):
     ax = axes[idx]
@@ -71,7 +68,7 @@ for idx, x_h in enumerate(X_H_LOCATIONS):
                 validation_data[x_h]['Y/H'].values, 
                 '-', 
                 label='Validation',
-                color=x_h_color_map[x_h],
+                color='black',
                 linewidth=2)
     
     # Plot OpenFOAM data
@@ -79,8 +76,8 @@ for idx, x_h in enumerate(X_H_LOCATIONS):
         ax.plot(openfoam_data[x_h]['u_normalized'].values, 
                 openfoam_data[x_h]['y_normalized'].values, 
                 '--', 
-                label='OpenFOAM',
-                color=x_h_color_map[x_h],
+                label=f'GL{GRID_LEVEL}',
+                color=grid_colors[GRID_LEVEL],
                 linewidth=2)
     
     # Format subplot
@@ -93,9 +90,9 @@ for idx, x_h in enumerate(X_H_LOCATIONS):
     ax.legend(loc="upper left")
 
 # Add overall title
-fig.suptitle(f"U/Ur Profiles at Different x/H Locations, Grid level {GRID_LEVEL} ", fontsize=14, y=0.995)
+fig.suptitle(f"UU/U₀ Profiles for all x/H at Grid Level {GRID_LEVEL} ", fontsize=14, y=0.995)
 plt.tight_layout()
 
 # Save and show
-plt.savefig(f"U_subplots_GridLevel_{GRID_LEVEL}.png", dpi=300, bbox_inches="tight")
+plt.savefig(f"alidationData/Images/U_subplots_GridLevel_{GRID_LEVEL}.png", dpi=300, bbox_inches="tight")
 plt.show()

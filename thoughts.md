@@ -3,8 +3,10 @@ ToDo
 - Link Turbo RANS to this and try optimizing
     - Try to optimize the medium refinement to match expt data and see how close
         you can get to the fine mesh results
-- Further mesh refinement to see if any improvement produced
 - Different turbulence models
+- [x] run other grid levels
+    - [x] create plots
+- [ ] Mesh adaption?
 ----
 
 In x_by_h_01_p_U_turbulenceProperties:devReff.xy

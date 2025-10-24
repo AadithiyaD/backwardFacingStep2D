@@ -1,2 +1,5 @@
 *.p3dfmt filter=lfs diff=lfs merge=lfs -text
 *.p2dfmt filter=lfs diff=lfs merge=lfs -text
+constant/polyMesh/points filter=lfs diff=lfs merge=lfs -text
+constant/polyMesh/faceZones filter=lfs diff=lfs merge=lfs -text
+constant/polyMesh/faces filter=lfs diff=lfs merge=lfs -text
