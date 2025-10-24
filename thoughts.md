@@ -46,3 +46,7 @@ postProcess -funcs '(magU sample)' -latestTime
 
 The sample dict from the ori case file takes U_ref at -0.0508 0.0508 0.01, which is basically the midpoint of the
 entry region. I can use somethime similar for the nasa grids
+
+*#! Source of inaccuracy* - The "wall" B.C is supposed to start at x=-110 for the uppper and lower walls. I only used the first 2 cells,
+so this could cause some issues with the boundary layer thickness, which would afffect the velocity at the step, and thereby
+the solution. Should rectify this

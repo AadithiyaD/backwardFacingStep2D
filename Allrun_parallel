@@ -1,0 +1,38 @@
+#!/bin/sh
+cd "${0%/*}" || exit                                # Run from this directory
+. ${WM_PROJECT_DIR:?}/bin/tools/RunFunctions        # Tutorial run functions
+#------------------------------------------------------------------------------
+
+# Usage- ./Allrun <grid_level>
+
+./Allclean # Redundant but safe
+
+rm backstep5_[0-4]levdn.p[23]dfmt
+
+restore0Dir
+
+cp "NASA_Grids/backstep5_${1}levdn.p2dfmt" .
+
+plot3dToFoam -2D 1 -noBlank backstep5_${1}levdn.p2dfmt
+
+autoPatch -overwrite 90
+
+topoSet
+
+createPatch -overwrite
+
+createPatch -dict system/patchMerge -overwrite
+
+decomposePar
+
+mpirun -np 12 simpleFoam -parallel
+
+reconstructPar
+
+postProcess -funcs '(magU sample)' -latestTime
+
+cp -r postProcessing/sample/5000/* ValidationData/post_data/grids/grid_${1}/
+
+rm backstep5_[0-4]levdn.p[23]dfmt
+
+#------------------------------------------------------------------------------
