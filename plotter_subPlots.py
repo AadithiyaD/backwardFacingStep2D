@@ -18,7 +18,7 @@ plt.rcParams.update({
 # Available GRID_LEVEL [0, 1, 2, 3, 4]
 STEP_HEIGHT = 1 # m
 X_H_LOCATIONS = [1.0, 4.0, 6.0, 10.0]
-GRID_LEVEL = 4
+GRID_LEVEL = 2
 
 # Assign colors for each x/H location
 grid_colors = ['darkviolet', 'blue', 'darkgreen', 'orange', 'red' ]
@@ -94,5 +94,5 @@ fig.suptitle(f"UU/U₀ Profiles for all x/H at Grid Level {GRID_LEVEL} ", fontsi
 plt.tight_layout()
 
 # Save and show
-plt.savefig(f"alidationData/Images/U_subplots_GridLevel_{GRID_LEVEL}.png", dpi=300, bbox_inches="tight")
+plt.savefig(f"ValidationData/Images/U_subplots_GridLevel_{GRID_LEVEL}.png", dpi=300, bbox_inches="tight")
 plt.show()

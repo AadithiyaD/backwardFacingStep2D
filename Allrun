@@ -7,9 +7,11 @@ cd "${0%/*}" || exit                                # Run from this directory
 
 ./Allclean # Redundant but safe
 
+rm backstep5_[0-4]levdn.p[23]dfmt
+
 restore0Dir
 
-./copyGrid.sh ${1} 2d
+cp "NASA_Grids/backstep5_${1}levdn.p2dfmt" .
 
 plot3dToFoam -2D 1 -noBlank backstep5_${1}levdn.p2dfmt
 
@@ -26,5 +28,7 @@ runApplication simpleFoam
 postProcess -funcs '(magU sample)' -latestTime
 
 cp -r postProcessing/sample/2000/* ValidationData/post_data/grids/grid_${1}/
+
+rm backstep5_[0-4]levdn.p[23]dfmt
 
 #------------------------------------------------------------------------------
