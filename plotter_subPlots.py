@@ -4,13 +4,15 @@ from matplotlib import cm
 
 # Set matplotlib style
 plt.rcParams.update({
-    'font.size': 10,
+    'font.size': 12,
     'grid.color': 'gray',
-    'grid.linestyle': '--',
+    'grid.linestyle': '-',
     'grid.linewidth': 0.5,
+    'grid.alpha': 0.3,
     'axes.linewidth': 1.5,
     'lines.linewidth': 2,
-    'legend.frameon': False
+    'legend.frameon': True,
+    'legend.framealpha':1.0
 })
 
 # Compare specified grid levels for all x/H locations
@@ -87,6 +89,7 @@ for idx, x_h in enumerate(X_H_LOCATIONS):
     ax.set_ylabel("y/h")
     ax.set_title(f"x/H = {x_h}")
     ax.grid(True)
+    ax.axvline(x=0, color='gray', linestyle='--', linewidth=1, alpha=0.7)
     ax.legend(loc="upper left")
 
 # Add overall title

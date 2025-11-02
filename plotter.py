@@ -5,13 +5,15 @@ import numpy as np
 
 # Set matplotlib style
 plt.rcParams.update({
-    'font.size': 10,
+    'font.size': 12,
     'grid.color': 'gray',
-    'grid.linestyle': '--',
+    'grid.linestyle': '-',
     'grid.linewidth': 0.5,
+    'grid.alpha': 0.3,
     'axes.linewidth': 1.5,
     'lines.linewidth': 2,
-    'legend.frameon': False
+    'legend.frameon': True,
+    'legend.framealpha':1.0
 })
 
 # Constants
@@ -23,7 +25,7 @@ STEP_HEIGHT = 1 # m
 X_H_LOCATIONS = [10.0]
 GRID_LEVEL = [0, 1, 2, 3, 4]
 
-# Assign colors 
+# Assign colors
 grid_colors = ['darkviolet', 'blue', 'darkgreen', 'orange', 'red' ]
 
 # Initialize plot
@@ -69,6 +71,7 @@ ax.set_xlabel("U/U₀")
 ax.set_ylabel("y/h")
 ax.set_title(f"U/U₀ Profiles at x/H={X_H_LOCATIONS[0]} and Grid Levels (GL)")
 ax.grid(True)
+ax.axvline(x=0, color='gray', linestyle='--', linewidth=1, alpha=0.7)
 ax.legend(loc="upper left")
 
 # Save and show
