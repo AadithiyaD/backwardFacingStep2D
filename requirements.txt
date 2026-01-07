@@ -1,0 +1,6 @@
+PyFoam
+pandas
+numpy
+plotly
+matplotlib
+ax-platform

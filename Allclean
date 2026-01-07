@@ -3,9 +3,13 @@ cd "${0%/*}" || exit                                # Run from this directory
 . ${WM_PROJECT_DIR:?}/bin/tools/CleanFunctions      # Tutorial clean functions
 #------------------------------------------------------------------------------
 
-cleanCase0
+# cleanCase0
 
-rm -rf *.dat 
+# rm -rf *.dat 
 # rm -rf *.png
+
+rm -rf PyFoam*
+
+rm -rf cases/*
 
 # -----------------------------------------------------------------------------

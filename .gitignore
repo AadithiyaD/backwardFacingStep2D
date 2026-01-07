@@ -10,4 +10,9 @@
 4800
 4900
 5000
-myThoughts.md
+.venv/
+.vscode/
+datParser.py
+my_testingFile.py
+cases/*
+__pycache__
