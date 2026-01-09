@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import os
 
 # Reference data for non-dimensionalisation
 Uref = 44.2 
@@ -38,19 +39,19 @@ def calcRmse(trial_metadata: dict, x_by_h: int, w1: float = 1, w2: float = 0.5) 
     data_loc = trial_metadata['dataForOptLoop']
     
     # Shows mapping of x_by_H loc to driver data file
-    map = {1:5,
+    sample_expt_map = {1:5,
            4:10,
            6:13,
            10:17}
     
     # Load experimental (ref) data
-    expt_data = pd.read_csv(data_loc / f'R.ST0_station_{map[x_by_h]:02d}.csv', skiprows=5)
+    expt_data = pd.read_csv(os.path.join(data_loc, f'R.ST0_station_{sample_expt_map[x_by_h]:02d}.csv'), skiprows=5)
     ux_ref = expt_data['U/Ur']
     uy_ref = expt_data['V/Ur']
     yh_ref = expt_data['Y/H']
 
     # Load respective sim (pred) data and non-dimensionalize it
-    sim_data = pd.read_csv(data_loc / f'x_by_h_{x_by_h:02d}_U.csv', header=0)
+    sim_data = pd.read_csv(os.path.join(data_loc, f'x_by_h_{x_by_h:02d}_U.csv'), header=0)
     ux_sim_all = sim_data['U_0'] / Uref
     uy_sim_all = sim_data['U_1'] / Uref
     yh_sim = sim_data['y'] / H

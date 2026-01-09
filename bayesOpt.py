@@ -1,28 +1,29 @@
 """
 Main optimisation script
 """
+import json
 import numpy as np
 import os
 import re
 import shutil
 from subprocess import Popen, DEVNULL
-from PyFoam.Execution.BasicRunner import BasicRunner
 from PyFoam.RunDictionary.ParsedParameterFile import ParsedParameterFile
 from ax.api.client import Client
 from ax.api.configs import RangeParameterConfig
 from ax.api.protocols.metric import IMetric
 from ax.api.protocols.runner import IRunner, TrialStatus
-from ax.api.types import TParameterization
+from ax.service.utils.report_utils import exp_to_df
 from errorCalc import calcRmse
+import plotly.io as pio
 
 # ===================================================================================================
 # TODO - Put all of these setupvariables in a central config / setup file
 
 # Define opt config
-max_iter = 10
+max_trials = 50
 parallel_runs = 3
 failure_tolerance = 0.3 # 0.3 => exception raised if 30% of trials fail
-time_bw_polls = 30
+time_bw_polls = 700
 
 # Initialize ax client
 client = Client()
@@ -54,6 +55,10 @@ w2 = 0.5
 #     client.complete_trial(trial_index=trial_index, raw_data=data)
 
 class Runner(IRunner):
+    def __init__(self) -> None:
+        # Dict to store simpleFoam popen instances
+        self.sf_runners = {}
+    
     def run_trial(self, trial_index, parameterization) -> dict[str, str]:
         """Sets up and executes an instance of simpleFoam for the case
 
@@ -67,17 +72,17 @@ class Runner(IRunner):
         """
     
         # Setup case dir
-        case_dir = f"./cases/trial_{trial_index}"
+        case_dir = os.path.join("cases", f"trial_{trial_index}")
         os.makedirs(case_dir, exist_ok=True)
         
         # Copy base files
         for folder in ['0', 'constant', 'system', 'dataForOptLoop']:
-            shutil.copytree(f"./{folder}", 
-                            f"{case_dir}/{folder}", dirs_exist_ok = True)
+            shutil.copytree(src=folder, 
+                            dst=os.path.join(case_dir, folder), dirs_exist_ok = True)
         
         # Modify turbulenceProperties with new coeffs
         turb_props = ParsedParameterFile(
-            f'{case_dir}/constant/turbulenceProperties',
+            os.path.join(case_dir, 'constant', 'turbulenceProperties'),
             treatBinaryAsASCII=True
         )
         coeffs = turb_props["RAS"]["kOmegaSSTCoeffs"]
@@ -87,29 +92,32 @@ class Runner(IRunner):
     
         # Non-blocking execution of simpleFoam
         decompose = Popen(
-            [f'decomposePar -case {case_dir}'],
+            [f'decomposePar -case {os.path.normpath(case_dir)}'],
             stdin = DEVNULL,
             stdout= DEVNULL,
             shell= True
             )
         
-        # WAit for decompose to finish 
+        # Wait for decompose to finish 
         decompose.wait()
         
         simpleFoam = Popen(
-            [f'pyFoamRunner.py --procnr=6 simpleFoam -case {case_dir} '],
+            [f'pyFoamRunner.py --procnr=6 simpleFoam -case {os.path.normpath(case_dir)} '],
             stdin = DEVNULL,
             stdout= DEVNULL,
             shell= True
         )
         
+        # Store insance for use in poll_trial()
+        self.sf_runners[trial_index] = simpleFoam
+        
         # Return metadata
         return {
             'case_dir': case_dir,
-            'log_file': f'{case_dir}/PyFoamRunner.simpleFoam.logfile',
-            'state_file': f'{case_dir}/PyFoamState.TheState',
-            'dataForOptLoop': f'{case_dir}/dataForOptLoop',
-            'postProcessing': f'{case_dir}/postProcessing'
+            'log_file': os.path.join(case_dir, 'PyFoamRunner.simpleFoam.logfile'),
+            'state_file': os.path.join(case_dir, 'PyFoamState.TheState'),
+            'dataForOptLoop': os.path.join(case_dir, 'dataForOptLoop'),
+            'postProcessing': os.path.join(case_dir, 'postProcessing')
         }
     #* No need to call reconstructPar since we only compare data from postProcessing dir
     
@@ -123,101 +131,99 @@ class Runner(IRunner):
         Returns:
             TrialStatus: TrialStatus
         """
-
+        # Get simpleFoam instance
+        sf_instance = self.sf_runners[trial_index]
+        
         # Check if its still running
-        # Another way to check would be to use Popen return codes
-        # But I think this is more descriptive
-        with open(f"{trial_metadata['state_file']}", 'r') as f:
-            content = f.read().splitlines()
+        # You could use the State file that pyfoam creates, but 
+        # It takes time for that file to be created, and if ax polls
+        # before its created, it leads to a file not found error
+        if sf_instance.poll() is None:
+            return TrialStatus.RUNNING
+        
+        elif sf_instance.poll() == 0 :
+            #  Question - How do you determine convergence of the sim
+            #  Ans - I'm doing a VERY simple check here
+            #  I want all sims to run for the 2000 iters. Since the sim is very quick on the baseline, I don't
+            #  consider this to be a big issue. Next, If the first and last time steps do not exist, I consider
+            #  that as a divergence and return a TrialStatus.FAILED (this status will include both sim crashes and divergences)
+            #  Next, if any of the initial residulas from the last time step are > those of the first time step.
+            #  I return a TrialStatus.FAILED
             
-            if content[0] =='Running':
-                return TrialStatus.RUNNING
+            with open(trial_metadata['log_file'], 'r') as f:
+                content = f.read().splitlines()
             
-            # Finished - Ended => sim finished successfully
-            elif content[0] == 'Finished - Ended':
-                #  Question - How do you determine convergence of the sim
-                #  Ans - I'm doing a VERY simple check here
-                #  I want all sims to run for the 2000 iters. Since the sim is very quick on the baseline, I don't
-                #  consider this to be a big issue. Next, If the first and last time steps do not exist, I consider
-                #  that as a divergence and return a TrialStatus.FAILED (this status will include both sim crashes and divergences)
-                #  Next, if any of the initial residulas from the last time step are > those of the first time step.
-                #  I return a TrialStatus.FAILED
-                
+            # Extract relevant lines for first and last time steps
+            # re.search pattern explanation - \b => line must start with Time and have one or more digits (i.e \d+)
+            time_lines = [i for i, line in enumerate(content) if re.search(r"\bTime = \d+", line)]
+            if time_lines:
+                first_time_idx = time_lines[0]
+                time_1_content = content[first_time_idx+2 : first_time_idx+9]
+                last_time_idx = time_lines[-1] 
+                time_end_content = content[last_time_idx+2 : last_time_idx+9]
 
-                with open(trial_metadata['log_file'], 'r') as f:
-                    content = f.read().splitlines()
-                
-                # Extract relevant lines for first and last time steps
-                # re.search pattern explanation - \b => line must start with Time and have one or more digits (i.e \d+)
-                time_lines = [i for i, line in enumerate(content) if re.search(r"\bTime = \d+", line)]
-                if time_lines:
-                    first_time_idx = time_lines[0]
-                    time_1_content = content[first_time_idx+2 : first_time_idx+9]
-                    last_time_idx = time_lines[-1] 
-                    time_end_content = content[last_time_idx+2 : last_time_idx+9]
+            # If sim crashed and did not write any time steps
+            if not time_1_content or not time_end_content:
+                return TrialStatus.FAILED
+            
+            # Pattern for extracting decimals
+            # \d+ => start with one or more (i.e +) digits (i.e \d)
+            # [.?] => match an optional (i.e ?) . (i.e [.])
+            # \d* => end with zero or more (i.e *) digits
+            # [e]?[-]?\d* => optionally match an e-{number} pattern 
+            
+            pattern = r"\d+[.]?\d*[e]?[-]?\d*"
+            
+            # Dict to store residuals
+            residuals_1 = {} 
+            residuals_2 = {}
+            variables = ["Ux", "Uy", "p", "omega", "k"]
 
-                # If sim crashed and did not write any time steps
-                if not time_1_content or not time_end_content:
-                    return TrialStatus.FAILED
-                
-                # Pattern for extracting decimals
-                # \d+ => start with one or more (i.e +) digits (i.e \d)
-                # [.?] => match an optional (i.e ?) . (i.e [.])
-                # \d* => end with zero or more (i.e *) digits
-                # [e]?[-]?\d* => optionally match an e-{number} pattern 
-                
-                pattern = r"\d+[.]?\d*[e]?[-]?\d*"
-                
-                # Dict to store residuals
-                residuals_1 = {} 
-                residuals_2 = {}
-                variables = ["Ux", "Uy", "p", "omega", "k"]
+            # Extract residual values from content
+            for line in time_1_content:
+                for var in variables:
+                    if re.search(f"Solving for {var}", line):
+                        residuals_1[var] = float(re.findall(pattern, line)[0])
 
-                # Extract residual values from content
-                for line in time_1_content:
-                    for var in variables:
-                        if re.search(f"Solving for {var}", line):
-                            residuals_1[var] = float(re.findall(pattern, line)[0])
+            for line in time_end_content:
+                for var in variables:
+                    if re.search(f"Solving for {var}", line):
+                        residuals_2[var] = float(re.findall(pattern, line)[0])
 
-                for line in time_end_content:
-                    for var in variables:
-                        if re.search(f"Solving for {var}", line):
-                            residuals_2[var] = float(re.findall(pattern, line)[0])
-
-                # Simple divergence check
-                if any(residuals_2[var] > residuals_1[var] for var in variables):
-                    return TrialStatus.FAILED
-                
-                else:
-                    return TrialStatus.COMPLETED
-                
-                    # Move sample csv files to new dir for convenience
-                    source_dir_path = f"{trial_metadata['postProcessing']}/sample/2000/"
-                    dest_dir_path = f"{trial_metadata['dataForOptLoop']}"
-                    
-                    for file in x_by_h:
-                        shutil.copy(src= source_dir_path / f'x_by_h_{file:02d}_U.csv',
-                                    dst= dest_dir_path / f'x_by_h_{file:02d}_U.csv')
+            # Simple divergence check
+            if any(residuals_2[var] > residuals_1[var] for var in variables):
+                return TrialStatus.FAILED
             
             else:
-                # Note: If State == 'Finished' it means sim abruptly stopped
-                print(f"State - {content}")
-                return TrialStatus.FAILED
+                return TrialStatus.COMPLETED
+        
+        else:
+            print(f"Non-zero exit code {sf_instance.poll()}")
+            return TrialStatus.FAILED
 
 class ErrorMetric(IMetric):   
     """IMetric def for calculating RMSE. 
     
     Note - ax calls fetch only if trial status is completed
     """
-    def fetch(self, trial_metadata: dict) :
+    def fetch(self, trial_index, trial_metadata: dict) :
         """Calculates rmse and returns dict of {self.name : (total_error, 0)}
         total_error = rmse(x/h) where x/h values are pre-specified in setup
         
         If exception encountered, returns None and ax will ignore the sepcific
         iteration / trialS
         """
-        
         try:
+            # Move sampled csv files to new dir for convenience
+            #! TODO - Programmatically update the iter number to match that from controlDict
+            #* Idea - Put f strings here from the control script
+            source_dir_path = os.path.join(trial_metadata['postProcessing'], 'sample', '2000')
+            dest_dir_path = trial_metadata['dataForOptLoop']
+            
+            for file in x_by_h:
+                shutil.copy(src= os.path.join(source_dir_path, f'x_by_h_{file:02d}_U.csv'),
+                            dst= os.path.join(dest_dir_path, f'x_by_h_{file:02d}_U.csv'))
+            
             total_error = 0
             for x_pos in x_by_h:
                 total_error += calcRmse(trial_metadata=trial_metadata,
@@ -246,9 +252,71 @@ client.configure_runner(runner=runner)
 client.configure_metrics(metrics=[error_metric])
 
 client.run_trials(
-    max_trials=max_iter,
+    max_trials=max_trials,
     parallelism=parallel_runs,
     tolerated_trial_failure_rate=failure_tolerance,
     initial_seconds_between_polls=time_bw_polls
 )
 
+best_parameters, prediction, index, name = client.get_best_parameterization()
+print("Best Parameters:", best_parameters)
+print("Prediction (mean, variance):", prediction)
+
+# Saving results to json and csv
+experiment = client._experiment
+
+df = exp_to_df(experiment)
+df.to_csv('ax_result_data/experiment_results.csv', index=False)
+df.to_json('ax_result_data/experiment_results.json', indent=2)
+
+# Generate visualisations
+cards = client.compute_analyses(display=False)
+
+html_dir = 'ax_result_data/html'
+
+def save_card(card, card_index):
+    """Recursively save cards and their children. Check each
+    card blobs for the attribute write_html and write it out
+    """
+    # Setup name of card and location to save
+    card_name = f"{card_index}_{card.name.replace(' ', '_').replace('/', '_')}"
+    html_file = os.path.join(html_dir, f"{card_name}.html")
+    
+    # Check if this is a card group with child
+    if hasattr(card, 'children') and card.children:
+        for i, child_card in enumerate(card.children):
+            save_card(child_card, i)
+        return
+    
+    try:
+        # Get card blob, as it contains the plotly figs
+        if hasattr(card, 'blob') and card.blob is not None:
+            blob = card.blob
+            
+            # If blob is json, parse with plotly and write out html
+            if isinstance(blob, str):
+                try:
+                    fig = pio.from_json(blob)
+                    fig.write_html(html_file)
+                    return
+                except Exception as e:
+                    print(f"!!! enountered error during html write - {e}")
+            
+            # If the blob is already a plotli fig, directly write out html
+            elif hasattr(blob, 'write_html'):
+                blob.write_html(html_file)
+                return
+    
+        # for other attributes
+        for attr_name in ['fig', 'figure', '_blob']:
+            if hasattr(card, attr_name):
+                attr_value = getattr(card, attr_name)
+                if attr_name is not None and hasattr(attr_value, 'write_html'):
+                    attr_value.write_html(html_file)
+                    return
+    
+    except Exception as e:
+        print(f"!!! error - {e}")
+
+for i, card in enumerate(cards):
+    save_card(card, i)
