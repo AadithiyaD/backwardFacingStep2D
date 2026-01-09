@@ -12,4 +12,8 @@ rm -rf PyFoam*
 
 rm -rf cases/*
 
+rm -rf ax_result_data/html/*.html
+
+rm ax_result_data/*
+
 # -----------------------------------------------------------------------------

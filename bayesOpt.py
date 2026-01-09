@@ -1,6 +1,7 @@
 """
 Main optimisation script
 """
+from centralControl import BETASTAR, A1_COEFF, X_BY_H, WEIGHT1, WEIGHT2, TIME_BW_POLLS, FAILURE_TOLERANCE, PARALLEL_RUNS, MAX_TRIALS, MAX_ITER
 import json
 import numpy as np
 import os
@@ -17,28 +18,8 @@ from errorCalc import calcRmse
 import plotly.io as pio
 
 # ===================================================================================================
-# TODO - Put all of these setupvariables in a central config / setup file
-
-# Define opt config
-max_trials = 50
-parallel_runs = 3
-failure_tolerance = 0.3 # 0.3 => exception raised if 30% of trials fail
-time_bw_polls = 700
-
 # Initialize ax client
 client = Client()
-
-# Define parameters
-a1 = RangeParameterConfig(name="a1", parameter_type="float", bounds=(0.248, 0.372))
-betaStar = RangeParameterConfig(name="betaStar", parameter_type="float", bounds=(0.072, 0.108))
-
-# x/H positions
-x_by_h=[1,4,6,10]
-
-# Weightage for near wall rmse (w1) and free stream (w2)
-w1 = 1
-w2 = 0.5
-
 # ===================================================================================================
 
 # # Add data from any pre exisiting trials
@@ -217,17 +198,20 @@ class ErrorMetric(IMetric):
             # Move sampled csv files to new dir for convenience
             #! TODO - Programmatically update the iter number to match that from controlDict
             #* Idea - Put f strings here from the control script
-            source_dir_path = os.path.join(trial_metadata['postProcessing'], 'sample', '2000')
+            #! Put max_iter from central control here
+            source_dir_path = os.path.join(trial_metadata['postProcessing'], 'sample', f'{MAX_ITER}')
             dest_dir_path = trial_metadata['dataForOptLoop']
             
-            for file in x_by_h:
+            for file in X_BY_H:
                 shutil.copy(src= os.path.join(source_dir_path, f'x_by_h_{file:02d}_U.csv'),
                             dst= os.path.join(dest_dir_path, f'x_by_h_{file:02d}_U.csv'))
             
             total_error = 0
-            for x_pos in x_by_h:
+            for x_pos in X_BY_H:
                 total_error += calcRmse(trial_metadata=trial_metadata,
-                                        x_by_h=x_pos)
+                                        x_by_h=x_pos,
+                                        w1=WEIGHT1,
+                                        w2=WEIGHT2)
             
             return (0, total_error)
         
@@ -237,7 +221,7 @@ class ErrorMetric(IMetric):
 
 
 client.configure_experiment(
-    parameters=[a1, betaStar],
+    parameters=[A1_COEFF, BETASTAR],
     name="2D Turbulence model Calibration",
     description="k-omega SST Calibration against 2D backward facing step using Driver and Seegmiller dataset",
     owner="me"
@@ -252,10 +236,10 @@ client.configure_runner(runner=runner)
 client.configure_metrics(metrics=[error_metric])
 
 client.run_trials(
-    max_trials=max_trials,
-    parallelism=parallel_runs,
-    tolerated_trial_failure_rate=failure_tolerance,
-    initial_seconds_between_polls=time_bw_polls
+    max_trials=MAX_TRIALS,
+    parallelism=PARALLEL_RUNS,
+    tolerated_trial_failure_rate=FAILURE_TOLERANCE,
+    initial_seconds_between_polls=TIME_BW_POLLS
 )
 
 best_parameters, prediction, index, name = client.get_best_parameterization()
@@ -296,11 +280,12 @@ def save_card(card, card_index):
             # If blob is json, parse with plotly and write out html
             if isinstance(blob, str):
                 try:
-                    fig = pio.from_json(blob)
+                    fig = pio.from_json(value=blob, skip_invalid=True)
                     fig.write_html(html_file)
                     return
                 except Exception as e:
-                    print(f"!!! enountered error during html write - {e}")
+                    # print(f"!!! enountered error during html write - {e}")
+                    pass
             
             # If the blob is already a plotli fig, directly write out html
             elif hasattr(blob, 'write_html'):
