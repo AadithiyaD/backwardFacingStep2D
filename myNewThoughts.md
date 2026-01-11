@@ -79,3 +79,7 @@ The above error was because fetch() always needs to have trial_index and trial_m
 
 - !!! I tested the base openFOAM backward step case and i was able to get a better result. Looking at the residuals, its clear that the nasa grids still had to
 be iterated for atleast another 1000 steps, and i don't really want to do that. For the learning purpose, i think i should stick with the base blockMesh tut case
+
+- In order to change to using blockMesh, you'll need to change the 0 dir, system/sample, constant/polyMesh (remove this before doing blockMesh)
+
+- Files/dirs needed for the opt framework - 

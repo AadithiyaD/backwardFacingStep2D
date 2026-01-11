@@ -1,4 +1,8 @@
 .github/
+.venv/
+.vscode/
+__pycache__
+
 0
 1600
 1700
@@ -10,9 +14,7 @@
 4800
 4900
 5000
-.venv/
-.vscode/
+
 datParser.py
 my_testingFile.py
 cases/*
-__pycache__

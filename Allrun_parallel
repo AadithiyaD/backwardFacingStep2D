@@ -25,6 +25,7 @@ createPatch -dict system/patchMerge -overwrite
 
 decomposePar
 
+#! Change this nproc to match decomposePar
 mpirun -np 12 simpleFoam -parallel
 
 reconstructPar

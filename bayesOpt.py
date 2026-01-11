@@ -242,15 +242,19 @@ print("Prediction (mean, variance):", prediction)
 
 # Saving results to json and csv
 experiment = client._experiment
-
 df = exp_to_df(experiment)
-df.to_csv('ax_result_data/experiment_results.csv', index=False)
-df.to_json('ax_result_data/experiment_results.json', indent=2)
+
+results_dir = 'ax_result_data'
+os.makedirs(results_dir, exist_ok=True)
+
+df.to_csv(f'{results_dir}/experiment_results.csv', index=False)
+df.to_json(f'{results_dir}/experiment_results.json', indent=2)
 
 # Generate visualisations
 cards = client.compute_analyses(display=False)
 
-html_dir = 'ax_result_data/html'
+html_dir = f'{results_dir}/html'
+os.makedirs(html_dir, exist_ok=True)
 
 def save_card(card, card_index):
     """Recursively save cards and their children. Check each
