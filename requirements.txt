@@ -5,3 +5,4 @@ plotly
 matplotlib
 ax-platform
 ipykernel
+SQLAlchemy==1.4.54

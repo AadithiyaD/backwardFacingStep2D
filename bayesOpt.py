@@ -2,15 +2,12 @@
 Main optimisation script
 """
 from centralControl import BETASTAR, A1_COEFF, X_BY_H, WEIGHT1, WEIGHT2, TIME_BW_POLLS, FAILURE_TOLERANCE, PARALLEL_RUNS, MAX_TRIALS, MAX_ITER
-import json
-import numpy as np
 import os
 import re
 import shutil
 from subprocess import Popen, DEVNULL
 from PyFoam.RunDictionary.ParsedParameterFile import ParsedParameterFile
 from ax.api.client import Client
-from ax.api.configs import RangeParameterConfig
 from ax.api.protocols.metric import IMetric
 from ax.api.protocols.runner import IRunner, TrialStatus
 from ax.service.utils.report_utils import exp_to_df
@@ -20,6 +17,7 @@ import plotly.io as pio
 # ===================================================================================================
 # Initialize ax client
 client = Client()
+
 # ===================================================================================================
 
 # # Add data from any pre exisiting trials
@@ -196,9 +194,6 @@ class ErrorMetric(IMetric):
         """
         try:
             # Move sampled csv files to new dir for convenience
-            #! TODO - Programmatically update the iter number to match that from controlDict
-            #* Idea - Put f strings here from the control script
-            #! Put max_iter from central control here
             source_dir_path = os.path.join(trial_metadata['postProcessing'], 'sample', f'{MAX_ITER}')
             dest_dir_path = trial_metadata['dataForOptLoop']
             
@@ -218,7 +213,6 @@ class ErrorMetric(IMetric):
         except Exception as e:
             print(f"Encountered error {e}")
             return None
-
 
 client.configure_experiment(
     parameters=[A1_COEFF, BETASTAR],
@@ -305,3 +299,4 @@ def save_card(card, card_index):
 
 for i, card in enumerate(cards):
     save_card(card, i)
+

@@ -39,6 +39,7 @@ def calcRmse(trial_metadata: dict, x_by_h: int, w1: float = 1, w2: float = 0.5) 
     data_loc = trial_metadata['dataForOptLoop']
     
     # Shows mapping of x_by_H loc to driver data file
+    # If you want to try out different x/H positions, update this dict
     sample_expt_map = {1:5,
            4:10,
            6:13,

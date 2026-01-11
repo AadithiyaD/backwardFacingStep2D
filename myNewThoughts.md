@@ -38,7 +38,7 @@ tighter bound and see if that makes a difference
 ---------
 - [] Add provision for attaching known datapoints to experiment
 - [] Add foamToVTK call on completion of simpleFoam to trials
-- [] domain decomposition?
+- [] sequential domain reduction?
 - [] add other coefficients of kOmegaSST?
 
 ------
@@ -68,3 +68,14 @@ The above error was because fetch() always needs to have trial_index and trial_m
 - The Allrun scripts (i.e Allrun, Allrun_parallel, Allrun-w_pyFoam) are meant to execute the base backward 2D
   step using the grids from the NASA Turbulence modelling resource website
 - runOpt.sh is meant for running the bayesian optimisation experiment
+
+
+- put polymesh from NASA_Grids to under constant to use grid level 1
+  - !!! In order to change to using blockmesh, i'll haave to change my 0 dir as well
+
+- I haven't implemented the ability to store the state of the sim and restart from it. This requires aving to either an external sql data base or json file, using
+  the built in methods of ax; which in turn would requre specifying encoding/decoding, and a different definition of the ErrorMetric(). This seems to be
+  a sizeable endeavour, since the docs are pretty sparse, and the source code is not too inviting either
+
+- !!! I tested the base openFOAM backward step case and i was able to get a better result. Looking at the residuals, its clear that the nasa grids still had to
+be iterated for atleast another 1000 steps, and i don't really want to do that. For the learning purpose, i think i should stick with the base blockMesh tut case
