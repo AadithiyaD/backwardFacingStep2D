@@ -60,10 +60,11 @@ The above error was because fetch() always needs to have trial_index and trial_m
   Therefore just to keep it uniform, i'll use strings for constructing my paths everywhere
 
 - Note: ax will make the first poll at `time_bw_polls` sec into the opt. At this point, if the trials are still running
-  ax then makes the next poll at `1.5 * previous wait time`. 
-  - Ex: the first poll is done at 30s, the next at 30*1.5=45s, the next at 45 * 1.5 = 67s, and so on
+  ax then makes the next poll at `time_bw_polls * (1.5^n)` where n=> poll number. 
+  - Ex: the first poll is done at 30s, the next at 30*1.5=45s, the next at 30 * (1.5 ^2) = 67s, and so on
   - Therefore it is very important to set the polling time to a reasonable value relative to the experiment (i.e sim)
     Because even if a set of parallel trials are done, ax will not move on until it has polled them and returned TrialStatus.COMPLETED
+  - Once TrialStatus.COMPLETED is returned, it starts again at time_bw_polls for the next trial
 
 - The Allrun scripts (i.e Allrun, Allrun_parallel, Allrun-w_pyFoam) are meant to execute the base backward 2D
   step using the grids from the NASA Turbulence modelling resource website
@@ -83,3 +84,10 @@ be iterated for atleast another 1000 steps, and i don't really want to do that. 
 - In order to change to using blockMesh, you'll need to change the 0 dir, system/sample, constant/polyMesh (remove this before doing blockMesh)
 
 - Files/dirs needed for the opt framework - 
+
+- To make plots from the pickle files 
+```pyFoamRedoPlot.py PyFoamRunner.simpleFoam.analyzed/pickledPlots --pickle-file --picture-prefix=nasa_grid_```
+
+- [x] Need to add be able to extract results from available dir in sample rather than fixed iter based dir
+
+- _base_OF_ case step size = 0.0127

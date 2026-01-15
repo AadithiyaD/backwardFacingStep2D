@@ -123,10 +123,9 @@ class Runner(IRunner):
         elif sf_instance.poll() == 0 :
             #  Question - How do you determine convergence of the sim
             #  Ans - I'm doing a VERY simple check here
-            #  I want all sims to run for the 2000 iters. Since the sim is very quick on the baseline, I don't
-            #  consider this to be a big issue. Next, If the first and last time steps do not exist, I consider
-            #  that as a divergence and return a TrialStatus.FAILED (this status will include both sim crashes and divergences)
-            #  Next, if any of the initial residulas from the last time step are > those of the first time step.
+            #  If the first and last time steps do not exist, I consider
+            #  that as a divergence and return a TrialStatus.FAILED
+            #  If any of the initial residulas from the last time step are > those of the first time step.
             #  I return a TrialStatus.FAILED
             
             with open(trial_metadata['log_file'], 'r') as f:
@@ -194,7 +193,8 @@ class ErrorMetric(IMetric):
         """
         try:
             # Move sampled csv files to new dir for convenience
-            source_dir_path = os.path.join(trial_metadata['postProcessing'], 'sample', f'{MAX_ITER}')
+            sample_dir = os.path.join(trial_metadata['postProcessing'], 'sample')
+            source_dir_path = os.path.join(sample_dir, os.listdir(sample_dir)[0])
             dest_dir_path = trial_metadata['dataForOptLoop']
             
             for file in X_BY_H:
