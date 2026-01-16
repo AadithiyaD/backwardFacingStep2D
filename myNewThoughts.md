@@ -41,9 +41,21 @@ tighter bound and see if that makes a difference
 - [] sequential domain reduction?
 - [] add other coefficients of kOmegaSST?
 
-------
+16-01-26
+--------
+As of today, I consider this project to be done.  Please read the summary pdf for a brief explanation of the scripts, and how to use the framework.
+
+If you wish to transfer the optimisation framework to a different openFOAM case, you'll need the following files
+bayesOpt.py, errorCalc.py, centralControl.py, requirements.txt
+
+You'll also need to source the openFOAM environment in your main ~/.bashrc file, or find some other way to source it when running
+the script
+
+
+
+-------
 # Notes
-------
+-------
 ```shell
 INFO 01-07 07:50:44] Orchestrator: Waiting for completed trials (for 45 sec, currently running trials: 2).
 [INFO 01-07 07:51:29] Orchestrator: Retrieved COMPLETED trials: 3 - 4.
@@ -68,8 +80,8 @@ The above error was because fetch() always needs to have trial_index and trial_m
 
 - The Allrun scripts (i.e Allrun, Allrun_parallel, Allrun-w_pyFoam) are meant to execute the base backward 2D
   step using the grids from the NASA Turbulence modelling resource website
-- runOpt.sh is meant for running the bayesian optimisation experiment
 
+- runOpt.sh is meant for running the bayesian optimisation experiment
 
 - put polymesh from NASA_Grids to under constant to use grid level 1
   - !!! In order to change to using blockmesh, i'll haave to change my 0 dir as well
@@ -83,11 +95,10 @@ be iterated for atleast another 1000 steps, and i don't really want to do that. 
 
 - In order to change to using blockMesh, you'll need to change the 0 dir, system/sample, constant/polyMesh (remove this before doing blockMesh)
 
-- Files/dirs needed for the opt framework - 
-
 - To make plots from the pickle files 
 ```pyFoamRedoPlot.py PyFoamRunner.simpleFoam.analyzed/pickledPlots --pickle-file --picture-prefix=nasa_grid_```
 
 - [x] Need to add be able to extract results from available dir in sample rather than fixed iter based dir
 
 - _base_OF_ case step size = 0.0127
+
