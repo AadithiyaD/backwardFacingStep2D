@@ -36,20 +36,20 @@ tighter bound and see if that makes a difference
 
 09-01-2026
 ---------
-- [] Add provision for attaching known datapoints to experiment
+- [x] Add provision for attaching known datapoints to experiment
 - [] Add foamToVTK call on completion of simpleFoam to trials
 - [] sequential domain reduction?
 - [] add other coefficients of kOmegaSST?
 
 16-01-26
 --------
-As of today, I consider this project to be done.  Please read the summary pdf for a brief explanation of the scripts, and how to use the framework.
+As of today, I consider this project to be done. To use the framework, setup 
+a grid with either `setup_baseOF.sh` or `setup_nasaGrid.sh` and then use the `runOpt.sh` script.
 
 If you wish to transfer the optimisation framework to a different openFOAM case, you'll need the following files
 bayesOpt.py, errorCalc.py, centralControl.py, requirements.txt
 
-You'll also need to source the openFOAM environment in your main ~/.bashrc file, or find some other way to source it when running
-the script
+You'll also need to source the openFOAM environment in your main ~/.bashrc file, or find some other way to source it when running the script
 
 
 

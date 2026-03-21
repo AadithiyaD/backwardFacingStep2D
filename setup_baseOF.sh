@@ -1,6 +1,7 @@
 #!/bin/sh
 
 # Use this script to setup the project for use on the backwardFacingStep2D tutorial from openFoam
+# Usage => ./setup_baseOF.sh
 
 # Delete existing sample, BC setup and mesh miles
 rm system/sample
