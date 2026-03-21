@@ -23,6 +23,8 @@ Make sure your main ~/.bashrc file sources the openfoam environment. Otherwise y
 
 ![summary](Images/summary.jpg)
 
+Sample data of the runs mentioned in the summary are available in `ax_result_data/SampleResults`
+
 base_OF Grid - 
 ![base_OF_grid](Images/base_OF_overall_grid.png)
 ![base_OF_stepZoom](Images/base_OF_setpZoom.png)
